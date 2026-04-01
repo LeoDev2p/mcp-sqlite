@@ -9,32 +9,31 @@
 ╚═╝     ╚═╝ ╚═════╝╚═╝         ╚══════╝ ╚═════╝ ╚══════╝╚═╝   ╚═╝   ╚══════╝
 ```
 
+A professional **Model Context Protocol (MCP)** server for SQLite that enables language models to query, analyze, and manage SQLite databases safely and efficiently.
 
-Un servidor **Model Context Protocol (MCP)** profesional para SQLite que permite a modelos de lenguaje consultar, analizar y gestionar bases de datos SQLite de forma segura y eficiente.
+## 📋 Overview
 
-## 📋 Descripción
+This MCP provides a secure interface between language models (such as Claude) and SQLite databases. It enables:
 
-Este MCP proporciona una interfaz segura entre modelos de lenguaje (como Claude) y bases de datos SQLite. Permite:
+- **List tables** available in the database
+- **Explore schemas** of tables (columns, data types)
+- **Execute SQL queries** robustly
+- **Create indexes** to optimize performance
+- **Advanced logging** for auditing and debugging
 
-- **Listar tablas** disponibles en la base de datos
-- **Explorar esquemas** de tablas (columnas, tipos de datos)
-- **Ejecutar consultas SQL** SELECT robustamente
-- **Crear índices** para optimizar rendimiento
-- **Logging avanzado** para auditoría y debugging
-
-## 🚀 Requisitos
+## 🚀 Requirements
 
 - **Python 3.12+**
-- **[uv](https://docs.astral.sh/uv/)** (gestor de paquetes ultrarrápido)
-- SQLite 3.x (incluido por defecto en Python)
-- Una base de datos SQLite (.db)
+- **[uv](https://docs.astral.sh/uv/)** (ultrafast package manager)
+- SQLite 3.x (included by default in Python)
+- A SQLite database (.db)
 
-### Instalación de uv
+### Installing uv
 
 #### Windows
 
-1. Abre **PowerShell** como administrador
-2. Ejecuta el instalador:
+1. Open **PowerShell** as administrator
+2. Run the installer:
 
 ```powershell
 PowerShell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
@@ -46,59 +45,59 @@ PowerShell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-3. Reinicia tu terminal
+3. Restart your terminal
 
-**Verifica la instalación en cualquier SO:**
+**Verify installation on any OS:**
 
 ```bash
 uv --version
 ```
 
-## 📦 Instalación del Proyecto
+## 📦 Project Installation
 
-### 1. Clonar el repositorio
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/LeoDev2p/mcp-sqlite.git
 cd mcp_sqlite
 ```
 
-### 2. Instalar dependencias con uv
+### 2. Install dependencies with uv
 
 ```bash
 uv sync
 ```
 
-Este comando:
-- Crea un entorno virtual (.venv)
-- Instala las dependencias del `pyproject.toml`
-- Configura FastMCP y MCP automáticamente
+This command:
+- Creates a virtual environment (.venv)
+- Installs dependencies from `pyproject.toml`
+- Automatically configures FastMCP and MCP
 
-### 3. Verificar la instalación
+### 3. Verify the installation
 
 ```bash
 uv run mcp_sqlite_server.py --help
 ```
 
-Si todo está correcto, deberías ver la ayuda del servidor MCP.
+If everything is correct, you should see the MCP server help.
 
-### 4. Probar el MCP localmente
+### 4. Test the MCP locally
 
-Para desarrollo y testing, usa `fastmcp dev`:
+For development and testing, use `fastmcp dev`:
 
 ```bash
 fastmcp dev mcp_sqlite_server.py
 ```
 
-Esto abre un cliente interactivo donde puedes probar las herramientas en tiempo real.
+This opens an interactive client where you can test the tools in real time.
 
-## ⚙️ Configuración en Claude Desktop
+## ⚙️ Claude Desktop Configuration
 
-1. **Abre o crea** el archivo de configuración:
+1. **Open or create** the configuration file:
    - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
    - **macOS/Linux:** `~/.config/Claude/claude_desktop_config.json`
 
-2. **Añade la siguiente configuración** dentro de la sección `mcpServers`:
+2. **Add the following configuration** within the `mcpServers` section:
 
 ```json
 {
@@ -107,40 +106,40 @@ Esto abre un cliente interactivo donde puedes probar las herramientas en tiempo 
       "command": "C:\\Users\\usuario\\.local\\bin\\uv.exe",
       "args": [
         "--directory",
-        "/ruta/a/tu/proyecto/mcp_sqlite",
+        "/path/to/your/mcp_sqlite",
         "run",
         "mcp_sqlite_server.py"
       ],
       "env": {
-        "SQLITE_DB_PATH": "/ruta/a/tu/base/datos.db"
+        "SQLITE_DB_PATH": "/path/to/your/database.db"
       }
     }
   }
 }
 ```
 
-**Nota:** Reemplaza las rutas con las reales de tu sistema. `uv` debe estar en tu PATH después de la instalación.
+**Note:** Replace the paths with the actual paths on your system. `uv` must be in your PATH after installation.
 
-### Parámetros de configuración
+### Configuration Parameters
 
-| Parámetro | Descripción | Ejemplo |
+| Parameter | Description | Example |
 |-----------|-------------|---------|
-| `command` | Ruta al ejecutable de `uv` | `C:\\Users\\usuario\\.local\\bin\\uv.exe` |
-| `args` | Argumentos para ejecutar el servidor | Array con `--directory`, ruta, `run`, `mcp_sqlite_server.py` |
-| `SQLITE_DB_PATH` | Ruta completa a la BD (.db) | `C:\\ruta\\a\\tu\\basedatos.db` |
+| `command` | Path to the `uv` executable | `C:\\Users\\usuario\\.local\\bin\\uv.exe` |
+| `args` | Arguments to run the server | Array with `--directory`, path, `run`, `mcp_sqlite_server.py` |
+| `SQLITE_DB_PATH` | Full path to the DB file (.db) | `C:\\path\\to\\your\\database.db` |
 
-## 🔧 Herramientas disponibles
+## 🔧 Available Tools
 
 ### 1. `list_tables()`
 
-Lista todos los nombres de las tablas en la base de datos.
+Lists all table names in the database.
 
-**Ejemplo en Claude:**
+**Example in Claude:**
 ```
-"¿Qué tablas hay disponibles en la base de datos?"
+"What tables are available in the database?"
 ```
 
-**Respuesta esperada:**
+**Expected response:**
 ```
 ['movies', 'actors', 'genres', 'ratings']
 ```
@@ -149,17 +148,17 @@ Lista todos los nombres de las tablas en la base de datos.
 
 ### 2. `get_table_schema(table_name: str)`
 
-Devuelve los nombres de las columnas de una tabla específica.
+Returns the column names of a specific table.
 
-**Parámetros:**
-- `table_name` (str): Nombre de la tabla a explorar
+**Parameters:**
+- `table_name` (str): Name of the table to explore
 
-**Ejemplo en Claude:**
+**Example in Claude:**
 ```
-"Dame el esquema de la tabla 'movies'"
+"Show me the schema of the 'movies' table"
 ```
 
-**Respuesta esperada:**
+**Expected response:**
 ```
 ['id', 'title', 'year', 'director', 'rating']
 ```
@@ -168,149 +167,147 @@ Devuelve los nombres de las columnas de una tabla específica.
 
 ### 3. `execute_query(sql_query: str)`
 
-Ejecuta una consulta SQL SELECT y devuelve los resultados.
+Executes a SQL query and returns the results.
 
-**Parámetros:**
-- `sql_query` (str): Consulta SQL válida
+**Parameters:**
+- `sql_query` (str): Valid SQL query
 
-**Ejemplo en Claude:**
+**Example in Claude:**
 ```
-"Ejecuta esta consulta: SELECT title, year FROM movies WHERE year > 2000"
+"Execute this query: SELECT title, year FROM movies WHERE year > 2000"
 ```
 
-**Respuesta esperada:**
+**Expected response:**
 ```
 [('Inception', 2010), ('Interstellar', 2014), ('Oppenheimer', 2023)]
 ```
 
-**⚠️ Seguridad:**
-- Protección contra inyección SQL
-- CRUD y consultas avanzadas
+**⚠️ Security:**
+- Protection against SQL injection
+- CRUD and advanced queries supported
 
 ---
 
 ### 4. `create_index(table_name: str, column_name: str)`
 
-Crea un índice en una columna para acelerar búsquedas en tablas grandes.
+Creates an index on a column to speed up searches on large tables.
 
-**Parámetros:**
-- `table_name` (str): Nombre de la tabla
-- `column_name` (str): Nombre de la columna
+**Parameters:**
+- `table_name` (str): Name of the table
+- `column_name` (str): Name of the column
 
-**Ejemplo en Claude:**
+**Example in Claude:**
 ```
-"Crea un índice en la tabla 'movies' para la columna 'year'"
+"Create an index on the 'movies' table for the 'year' column"
 ```
 
-**Respuesta esperada:**
+**Expected response:**
 ```
-"Índice idx_movies_year creado con éxito. Las búsquedas ahora serán más rápidas."
+"Index idx_movies_year successfully created. Searches will now be faster."
 ```
 
 ---
 
-## ️ Características de Seguridad
+## 🔐 Security Features
 
-### Validación de rutas
+### Path Validation
 
 ```python
 if not os.path.exists(DB_PATH):
-    return f"Error: No se encuentra el archivo en {DB_PATH}"
+    return f"Error: File not found at {DB_PATH}"
 ```
 
-- Verifica que la base de datos existe
-- Evita errores de rutas mal configuradas
+- Verifies that the database file exists
+- Prevents misconfiguration errors
 
-### Manejo de errores robusto
+### Robust Error Handling
 
 ```python
 try:
-    # Ejecución de query
+    # Query execution
 except sqlite3.IntegrityError as e:
     return f"Error: {str(e)}"
 except sqlite3.OperationalError as e:
-    # Log detallado para debugging
+    # Detailed logging for debugging
     log.error(f"SQL Error: {str(e)}")
 ```
 
-### Variables de entorno
+### Environment Variables
 
-La ruta de la BD se configura mediante `SQLITE_DB_PATH` en lugar de estar hardcodeada, mejorando:
-- Portabilidad
-- Seguridad
-- Flexibilidad
+The database path is configured via `SQLITE_DB_PATH` instead of being hardcoded, improving:
+- Portability
+- Security
+- Flexibility
 
-## 📊 Sistema de Logging
+## 📊 Logging System
 
-Los logs se guardan automáticamente en `logs/app.log` para auditoría y debugging.
+Logs are automatically saved to `logs/app.log` for auditing and debugging.
 
+## 🔄 Updating
 
-
-## 🔄 Actualización
-
-Para actualizar dependencias:
+To update dependencies:
 
 ```bash
 uv sync --upgrade
 ```
 
-Para actualizar solo la configuración:
+To update only the configuration:
 
 ```bash
 uv sync
 ```
 
-## 📝 Desarrollo
+## 📝 Development
 
-### Añadir una nueva herramienta
+### Adding a New Tool
 
-1. En `mcp_sqlite_server.py`, añade una nueva función con decorador `@mcp.tool()`:
+1. In `mcp_sqlite_server.py`, add a new function with the `@mcp.tool()` decorator:
 
 ```python
 @mcp.tool()
-def nueva_herramienta(param: str) -> str:
-    """Descripción de qué hace esta herramienta."""
+def new_tool(param: str) -> str:
+    """Description of what this tool does."""
     query = f"SELECT ..."
     return sqlite_connection(query)
 ```
 
-2. Reinicia Claude Desktop
+2. Restart Claude Desktop
 
-3. La nueva herramienta estará disponible automáticamente
+3. The new tool will be available automatically
 
-### Testing local
+### Local Testing
 
 ```bash
 uv run mcp_sqlite_server.py
 ```
 
-## 📄 Licencia
+## 📄 License
 
-Este proyecto está bajo licencia MIT. Ver archivo `LICENSE` para detalles.
+This project is under the MIT license. See the `LICENSE` file for details.
 
-## 👤 Autor
+## 👤 Author
 
-Desarrollado para mejorar la integración entre modelos de lenguaje y bases de datos SQLite.
+Developed to improve the integration between language models and SQLite databases.
 
-## 🤝 Contribuciones
+## 🤝 Contributions
 
-Las contribuciones son bienvenidas. Por favor:
+Contributions are welcome. Please:
 
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+1. Fork the repository
+2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📞 Soporte
+## 📞 Support
 
-Si encuentras problemas:
+If you encounter issues:
 
-1. Revisa los logs en `logs/app.log`
-2. Verifica la configuración en `claude_desktop_config.json`
-3. Asegúrate de que la BD existe y es accesible
+1. Check the logs in `logs/app.log`
+2. Verify the configuration in `claude_desktop_config.json`
+3. Make sure the database exists and is accessible
 
 ---
 
-**Versión:** 0.1.0  
-**Última actualización:** 2026-03-31
+**Version:** 0.1.0  
+**Last updated:** 2026-03-31
