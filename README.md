@@ -77,7 +77,7 @@ Este comando:
 ### 3. Verificar la instalación
 
 ```bash
-uv run server.py --help
+uv run mcp_sqlite_server.py --help
 ```
 
 Si todo está correcto, deberías ver la ayuda del servidor MCP.
@@ -87,7 +87,7 @@ Si todo está correcto, deberías ver la ayuda del servidor MCP.
 Para desarrollo y testing, usa `fastmcp dev`:
 
 ```bash
-fastmcp dev server.py
+fastmcp dev mcp_sqlite_server.py
 ```
 
 Esto abre un cliente interactivo donde puedes probar las herramientas en tiempo real.
@@ -109,7 +109,7 @@ Esto abre un cliente interactivo donde puedes probar las herramientas en tiempo 
         "--directory",
         "/ruta/a/tu/proyecto/mcp_sqlite",
         "run",
-        "server.py"
+        "mcp_sqlite_server.py"
       ],
       "env": {
         "SQLITE_DB_PATH": "/ruta/a/tu/base/datos.db"
@@ -126,7 +126,7 @@ Esto abre un cliente interactivo donde puedes probar las herramientas en tiempo 
 | Parámetro | Descripción | Ejemplo |
 |-----------|-------------|---------|
 | `command` | Ruta al ejecutable de `uv` | `C:\\Users\\usuario\\.local\\bin\\uv.exe` |
-| `args` | Argumentos para ejecutar el servidor | Array con `--directory`, ruta, `run`, `server.py` |
+| `args` | Argumentos para ejecutar el servidor | Array con `--directory`, ruta, `run`, `mcp_sqlite_server.py` |
 | `SQLITE_DB_PATH` | Ruta completa a la BD (.db) | `C:\\ruta\\a\\tu\\basedatos.db` |
 
 ## 🔧 Herramientas disponibles
@@ -264,7 +264,7 @@ uv sync
 
 ### Añadir una nueva herramienta
 
-1. En `server.py`, añade una nueva función con decorador `@mcp.tool()`:
+1. En `mcp_sqlite_server.py`, añade una nueva función con decorador `@mcp.tool()`:
 
 ```python
 @mcp.tool()
@@ -281,7 +281,7 @@ def nueva_herramienta(param: str) -> str:
 ### Testing local
 
 ```bash
-uv run server.py
+uv run mcp_sqlite_server.py
 ```
 
 ## 📄 Licencia
