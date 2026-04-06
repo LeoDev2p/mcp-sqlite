@@ -7,6 +7,7 @@
 ██║╚██╔╝██║██║     ██╔═══╝     ╚════██║██║   ██║██║     ██║   ██║   ██║════
 ██║ ╚═╝ ██║╚██████╗██║         ███████║╚██████╔╝███████╗██║   ██║   ███████║
 ╚═╝     ╚═╝ ╚═════╝╚═╝         ╚══════╝ ╚═════╝ ╚══════╝╚═╝   ╚═╝   ╚══════╝
+                                V 0.2.0
 ```
 
 A professional **Model Context Protocol (MCP)** server for SQLite that enables language models to query, analyze, and manage SQLite databases safely and efficiently.
@@ -165,16 +166,19 @@ Returns the column names of a specific table.
 
 ---
 
-### 3. `execute_query(sql_query: str)`
+### 3. `execute_read_query(query: str, params: tuple = (), limit: int = 20)`
 
-Executes a SQL query and returns the results.
+Executes READ queries (SELECT, WITH/CTE, JOINS, etc.) safely.
 
 **Parameters:**
-- `sql_query` (str): Valid SQL query
+- `query` (str): Valid SQL SELECT or WITH query
+- `params` (tuple): Parameters to prevent SQL injection (default: empty)
+- `limit` (int): Maximum rows to return (default: 20)
 
 **Example in Claude:**
 ```
-"Execute this query: SELECT title, year FROM movies WHERE year > 2000"
+"Execute this query: SELECT title, year FROM movies WHERE year > ?"
+With params: (2000,)
 ```
 
 **Expected response:**
@@ -183,8 +187,36 @@ Executes a SQL query and returns the results.
 ```
 
 **⚠️ Security:**
-- Protection against SQL injection
-- CRUD and advanced queries supported
+- Uses prepared statements to prevent SQL injection
+- Automatic LIMIT protection to prevent data overload
+- On5y supports SELECT and WITH queries
+
+---
+
+### 4. `execute_write_query(query: str, params: tuple = ())`
+
+Executes WRITE queries (INSERT, UPDATE, DELETE) safely.
+
+**Parameters:**
+- `query` (str): Valid SQL INSERT, UPDATE, or DELETE query
+- `params` (tuple): Parameters to prevent SQL injection (default: empty)
+
+**Example in Claude:**
+```
+"Insert a new movie with title 'Avatar' and year 2022"
+Query: INSERT INTO movies (title, year) VALUES (?, ?)
+With params: ('Avatar', 2022)
+```
+
+**Expected response:**
+```
+"Write query executed successfully."
+```
+
+**⚠️ Security:**
+- Uses prepared statements to prevent SQL injection
+- Blocks accidental SELECT queries from being executed here
+- Requires explicit parameters for all external values
 
 ---
 
@@ -281,14 +313,6 @@ def new_tool(param: str) -> str:
 uv run mcp_sqlite_server.py
 ```
 
-## 📄 License
-
-This project is under the MIT license. See the `LICENSE` file for details.
-
-## 👤 Author
-
-Developed to improve the integration between language models and SQLite databases.
-
 ## 🤝 Contributions
 
 Contributions are welcome. Please:
@@ -308,6 +332,5 @@ If you encounter issues:
 3. Make sure the database exists and is accessible
 
 ---
-
-**Version:** 0.1.0  
-**Last updated:** 2026-03-31
+ 
+**Last updated:** 2026-04-05
