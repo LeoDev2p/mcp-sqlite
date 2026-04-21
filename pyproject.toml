@@ -1,10 +1,11 @@
 [project]
 name = "mcp-sqlite"
-version = "0.1.0"
-description = "Servidor MCP para SQLite que permite a modelos de lenguaje consultar, listar tablas y explorar bases de datos locales."
+version = "0.2.0"
+description = "Servidor MCP para SQLite con soporte totalmente async que permite a modelos de lenguaje consultar, listar tablas y explorar bases de datos locales."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiosqlite>=0.22.1",
     "fastmcp>=3.2.0",
     "mcp[cli]>=1.26.0",
 ]

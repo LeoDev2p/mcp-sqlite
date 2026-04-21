@@ -123,15 +123,58 @@ mcp_sqlite/
 └── pyproject.toml
 ```
 
+## Advanced: Extending the Server
+
+### Adding New Async Tools
+
+To add new functionality to the MCP server:
+
+1. Open `src/sqlite_mcp/server.py`
+2. Add a new `@mcp.tool()` decorated async function:
+
+```python
+@mcp.tool()
+async def my_new_tool(param: str) -> str:
+    """Clear description of what this tool does."""
+    query = "SELECT ..."
+    result = await sqlite_connection(query, is_select=True)
+    log.info(f"New tool executed: {param}")
+    return result
+```
+
+3. Restart Claude Desktop or Antigravity
+4. The new tool will be available automatically
+
+### Logging in Custom Tools
+
+Use the logger to track tool execution:
+
+```python
+log.info(f"Processing query: {query}")
+try:
+    result = await sqlite_connection(query)
+except Exception as e:
+    log.error(f"Tool error: {str(e)}")
+    raise
+```
+
+### Testing Your Tools
+
+Use `fastmcp dev` to test interactively:
+
+```bash
+fastmcp dev server.py
+
+# In the interactive shell:
+>>> await my_new_tool('test-param')
+```
+
 ## Questions or Doubts
 
 - Open an **Issue** to report bugs
 - Open a **Discussion** for feature proposals
 - Check existing issues before reporting
 
-## License
-
-By contributing, you agree that your code is licensed under the [MIT License](LICENSE)
 
 ---
 

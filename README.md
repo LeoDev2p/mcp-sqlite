@@ -82,15 +82,54 @@ uv run server.py --help
 
 If everything is correct, you should see the MCP server help.
 
-### 4. Test the MCP locally
 
-For development and testing, use `fastmcp dev`:
+## Configuration for Claude Desktop & Antigravity
 
-```bash
-fastmcp dev server.py
+The MCP server configuration is **identical for all three platforms** — only the configuration file location changes.
+
+### Configuration File Locations
+
+| Platform | File Location |
+|----------|---------------|
+| **Claude Desktop** | `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/.config/Claude/claude_desktop_config.json` (macOS/Linux) |
+| **Antigravity** | `%APPDATA%\Antigravity\mcp_config.json` (Windows) or `~/.config/Antigravity/mcp_config.json` (macOS/Linux) |
+
+### Setup Instructions
+
+1. **Open or create** the appropriate configuration file for your platform (see table above)
+
+2. **Add the following JSON configuration** within the `mcpServers` section:
+
+```json
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:\\path\\to\\mcp_sqlite",
+        "run",
+        "python",
+        "-m",
+        "src.sqlite_mcp.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/path/to/mcp_sqlite",
+        "SQLITE_DB_PATH": "C:\\path\\to\\your\\database.db"
+      }
+    }
+  }
+}
 ```
 
-This opens an interactive client where you can test the tools in real time.
+
+**Platform-Specific Path Examples:**
+
+- **Windows**: `C:\\Users\\YourName\\path\\to\\database.db`
+- **macOS/Linux**: `/home/username/path/to/database.db`
+
+3. **Restart the application** (Claude Desktop or Antigravity) for changes to take effect
+4. The SQLite tools will be available in the tool menu immediately
 
 ## Architecture Overview
 
@@ -274,160 +313,13 @@ The database path is configured via `SQLITE_DB_PATH` instead of being hardcoded,
 
 Logs are automatically saved to `logs/server.log` for auditing and debugging.
 
-## Updating
+## Want to Contribute?
 
-To update dependencies:
-
-```bash
-uv sync --upgrade
-```
-
-To update only the configuration:
-
-```bash
-uv sync
-```
-
-## Development
-
-### Adding a New Tool
-
-1. In `server.py`, add a new function with the `@mcp.tool()` decorator:
-
-```python
-@mcp.tool()
-async def new_tool(param: str) -> str:
-    """Description of what this tool does."""
-    query = f"SELECT ..."
-    return await sqlite_connection(query)
-```
-
----
-
-## Configuration for Claude Desktop & Antigravity
-
-The MCP server configuration is **identical for all three platforms** — only the configuration file location changes.
-
-### Configuration File Locations
-
-| Platform | File Location |
-|----------|---------------|
-| **Claude Desktop** | `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/.config/Claude/claude_desktop_config.json` (macOS/Linux) |
-| **Antigravity** | `%APPDATA%\Antigravity\mcp_config.json` (Windows) or `~/.config/Antigravity/mcp_config.json` (macOS/Linux) |
-
-### Setup Instructions
-
-1. **Open or create** the appropriate configuration file for your platform (see table above)
-
-2. **Add the following JSON configuration** within the `mcpServers` section:
-
-```json
-{
-  "mcpServers": {
-    "sqlite": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "C:\\path\\to\\mcp_sqlite",
-        "run",
-        "server.py"
-      ],
-      "env": {
-        "SQLITE_DB_PATH": "C:\\path\\to\\your\\database.db"
-      }
-    }
-  }
-}
-```
-
-**Configuration Parameters:**
-
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `command` | The command to run (uv package manager) | `uv` |
-| `--directory` | Path to the mcp_sqlite project directory | `C:\\Users\\user\\mcp_sqlite` or `/home/user/mcp_sqlite` |
-| `SQLITE_DB_PATH` | Full absolute path to the SQLite database file | `C:\\Users\\user\\databases\\app.db` |
-
-**Platform-Specific Path Examples:**
-
-- **Windows**: `C:\\Users\\YourName\\path\\to\\database.db`
-- **macOS/Linux**: `/home/username/path/to/database.db`
-
-3. **Restart the application** (Claude Desktop or Antigravity) for changes to take effect
-4. The SQLite tools will be available in the tool menu immediately
-
-## Local Testing & Development
-
-### Test with FastMCP Dev Mode
-
-For interactive testing during development:
-
-```bash
-fastmcp dev server.py
-```
-
-This opens an interactive client where you can:
-- Test async tools in real-time
-- See detailed execution logs
-- Debug parameters and responses
-
-### Example Test Session
-
-```bash
-$ fastmcp dev server.py
-
-# In the interactive shell:
->>> await list_tables()
-['users', 'posts', 'comments']
-
->>> await get_table_schema('users')
-['id', 'name', 'email', 'created_at']
-
->>> await execute_read_query('SELECT * FROM users LIMIT 5')
-[...]
-```
-
-## 🔧 Advanced: Extending the Server
-
-To add new async tools:
-
-1. Open `src/sqlite_mcp/server.py`
-2. Add a new `@mcp.tool()` decorated async function:
-
-```python
-@mcp.tool()
-async def my_new_tool(param: str) -> str:
-    """Description of what this tool does."""
-    query = "SELECT ..."
-    result = await sqlite_connection(query, is_select=True)
-    return result
-```
-
-3. Restart Claude Desktop
-4. The new tool will be available automatically
-
-### Logging in Custom Tools
-
-Use the logger to track tool execution:
-
-```python
-log.info(f"Processing query: {query}")
-try:
-    result = await sqlite_connection(query)
-except Exception as e:
-    log.error(f"Tool error: {str(e)}")
-    raise
-```
-
-## Contributions
-
-Contributions are welcome. Please:
-
-1. Fork the repository
-2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+- Adding new async tools with proper patterns
+- Improving the logging system
+- Fixing bugs and documentation
+- Complete development setup and PR process
 
 ## Support & Troubleshooting
 
