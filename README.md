@@ -10,19 +10,19 @@
                                 V 0.2.0
 ```
 
-A professional **Model Context Protocol (MCP)** server for SQLite that enables language models to query, analyze, and manage SQLite databases safely and efficiently.
+A professional **Model Context Protocol (MCP)** server for SQLite with **full async support** that enables language models to query, analyze, and manage SQLite databases safely and efficiently.
 
-## 📋 Overview
+## Overview
 
-This MCP provides a secure interface between language models (such as Claude) and SQLite databases. It enables:
+This MCP provides a secure, fully asynchronous interface between language models (such as Claude) and SQLite databases. It enables:
 
 - **List tables** available in the database
 - **Explore schemas** of tables (columns, data types)
-- **Execute SQL queries** robustly
+- **Execute SQL queries** robustly with prepared statements
 - **Create indexes** to optimize performance
-- **Advanced logging** for auditing and debugging
+- **Advanced async logging** with log rotation and disk management
 
-## 🚀 Requirements
+## Requirements
 
 - **Python 3.12+**
 - **[uv](https://docs.astral.sh/uv/)** (ultrafast package manager)
@@ -54,7 +54,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv --version
 ```
 
-## 📦 Project Installation
+## Project Installation
 
 ### 1. Clone the repository
 
@@ -77,7 +77,7 @@ This command:
 ### 3. Verify the installation
 
 ```bash
-uv run mcp_sqlite_server.py --help
+uv run server.py --help
 ```
 
 If everything is correct, you should see the MCP server help.
@@ -87,54 +87,45 @@ If everything is correct, you should see the MCP server help.
 For development and testing, use `fastmcp dev`:
 
 ```bash
-fastmcp dev mcp_sqlite_server.py
+fastmcp dev server.py
 ```
 
 This opens an interactive client where you can test the tools in real time.
 
-## ⚙️ Claude Desktop Configuration
+## Architecture Overview
 
-1. **Open or create** the configuration file:
-   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-   - **macOS/Linux:** `~/.config/Claude/claude_desktop_config.json`
+### Async-First Design
 
-2. **Add the following configuration** within the `mcpServers` section:
+The server is built entirely with **async/await** patterns for optimal performance:
 
-```json
-{
-  "mcpServers": {
-    "sqlite": {
-      "command": "C:\\Users\\usuario\\.local\\bin\\uv.exe",
-      "args": [
-        "--directory",
-        "/path/to/your/mcp_sqlite",
-        "run",
-        "mcp_sqlite_server.py"
-      ],
-      "env": {
-        "SQLITE_DB_PATH": "/path/to/your/database.db"
-      }
-    }
-  }
-}
+- **Asynchronous Connection Pool**: Uses `aiosqlite` for non-blocking database access
+- **Concurrent Tool Execution**: Multiple queries can be processed simultaneously without blocking
+- **Resource Management**: Automatic connection cleanup with context managers (`async with`)
+- **Thread-Safe Operations**: Built-in support for concurrent requests from language models
+
+### Database Connection Flow
+
+```
+FastMCP Server (async)
+    ↓
+    async sqlite_connection() function
+    ↓
+    aiosqlite.connect() (non-blocking)
+    ↓
+    SQL Execution (prepared statements)
+    ↓
+    Response (cached or streamed)
 ```
 
-**Note:** Replace the paths with the actual paths on your system. `uv` must be in your PATH after installation.
+## � Tools Reference
 
-### Configuration Parameters
-
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `command` | Path to the `uv` executable | `C:\\Users\\usuario\\.local\\bin\\uv.exe` |
-| `args` | Arguments to run the server | Array with `--directory`, path, `run`, `mcp_sqlite_server.py` |
-| `SQLITE_DB_PATH` | Full path to the DB file (.db) | `C:\\path\\to\\your\\database.db` |
-
-## 🔧 Available Tools
+All tools are **fully asynchronous** and use prepared statements for security:
 
 ### 1. `list_tables()`
 
 Lists all table names in the database.
 
+**Type:** Async Read  
 **Example in Claude:**
 ```
 "What tables are available in the database?"
@@ -149,11 +140,12 @@ Lists all table names in the database.
 
 ### 2. `get_table_schema(table_name: str)`
 
-Returns the column names of a specific table.
+Returns the column names and types of a specific table.
 
 **Parameters:**
 - `table_name` (str): Name of the table to explore
 
+**Type:** Async Read  
 **Example in Claude:**
 ```
 "Show me the schema of the 'movies' table"
@@ -168,12 +160,19 @@ Returns the column names of a specific table.
 
 ### 3. `execute_read_query(query: str, params: tuple = (), limit: int = 20)`
 
-Executes READ queries (SELECT, WITH/CTE, JOINS, etc.) safely.
+Executes READ queries (SELECT, WITH/CTE, JOINS, etc.) safely with prepared statements.
 
 **Parameters:**
 - `query` (str): Valid SQL SELECT or WITH query
-- `params` (tuple): Parameters to prevent SQL injection (default: empty)
+- `params` (tuple): Values for placeholders to prevent SQL injection (default: empty)
 - `limit` (int): Maximum rows to return (default: 20)
+
+**Type:** Async Read  
+**Security Features:**
+- Prepared statements prevent SQL injection
+- Automatic LIMIT protection prevents data overload
+- Only supports SELECT and WITH queries
+- Validates query structure before execution
 
 **Example in Claude:**
 ```
@@ -186,20 +185,22 @@ With params: (2000,)
 [('Inception', 2010), ('Interstellar', 2014), ('Oppenheimer', 2023)]
 ```
 
-**⚠️ Security:**
-- Uses prepared statements to prevent SQL injection
-- Automatic LIMIT protection to prevent data overload
-- On5y supports SELECT and WITH queries
-
 ---
 
 ### 4. `execute_write_query(query: str, params: tuple = ())`
 
-Executes WRITE queries (INSERT, UPDATE, DELETE) safely.
+Executes WRITE queries (INSERT, UPDATE, DELETE) safely with prepared statements.
 
 **Parameters:**
 - `query` (str): Valid SQL INSERT, UPDATE, or DELETE query
-- `params` (tuple): Parameters to prevent SQL injection (default: empty)
+- `params` (tuple): Values for placeholders to prevent SQL injection (default: empty)
+
+**Type:** Async Write  
+**Security Features:**
+- Prepared statements prevent SQL injection
+- Blocks accidental SELECT queries from being executed here
+- Auto-commits transactions
+- Comprehensive error handling
 
 **Example in Claude:**
 ```
@@ -213,20 +214,18 @@ With params: ('Avatar', 2022)
 "Write query executed successfully."
 ```
 
-**⚠️ Security:**
-- Uses prepared statements to prevent SQL injection
-- Blocks accidental SELECT queries from being executed here
-- Requires explicit parameters for all external values
-
 ---
 
-### 4. `create_index(table_name: str, column_name: str)`
+### 5. `create_index(table_name: str, column_name: str)`
 
 Creates an index on a column to speed up searches on large tables.
 
 **Parameters:**
 - `table_name` (str): Name of the table
-- `column_name` (str): Name of the column
+- `column_name` (str): Name of the column to index
+
+**Type:** Async Write  
+**Performance Impact:** Significantly speeds up WHERE clause filtering on indexed columns
 
 **Example in Claude:**
 ```
@@ -235,12 +234,12 @@ Creates an index on a column to speed up searches on large tables.
 
 **Expected response:**
 ```
-"Index idx_movies_year successfully created. Searches will now be faster."
+"Index idx_movies_year created successfully. Searches will now be faster."
 ```
 
 ---
 
-## 🔐 Security Features
+## Security Features
 
 ### Path Validation
 
@@ -271,11 +270,11 @@ The database path is configured via `SQLITE_DB_PATH` instead of being hardcoded,
 - Security
 - Flexibility
 
-## 📊 Logging System
+## Logging System
 
-Logs are automatically saved to `logs/app.log` for auditing and debugging.
+Logs are automatically saved to `logs/server.log` for auditing and debugging.
 
-## 🔄 Updating
+## Updating
 
 To update dependencies:
 
@@ -289,31 +288,138 @@ To update only the configuration:
 uv sync
 ```
 
-## 📝 Development
+## Development
 
 ### Adding a New Tool
 
-1. In `mcp_sqlite_server.py`, add a new function with the `@mcp.tool()` decorator:
+1. In `server.py`, add a new function with the `@mcp.tool()` decorator:
 
 ```python
 @mcp.tool()
-def new_tool(param: str) -> str:
+async def new_tool(param: str) -> str:
     """Description of what this tool does."""
     query = f"SELECT ..."
-    return sqlite_connection(query)
+    return await sqlite_connection(query)
 ```
 
-2. Restart Claude Desktop
+---
 
-3. The new tool will be available automatically
+## Configuration for Claude Desktop & Antigravity
 
-### Local Testing
+The MCP server configuration is **identical for all three platforms** — only the configuration file location changes.
+
+### Configuration File Locations
+
+| Platform | File Location |
+|----------|---------------|
+| **Claude Desktop** | `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/.config/Claude/claude_desktop_config.json` (macOS/Linux) |
+| **Antigravity** | `%APPDATA%\Antigravity\mcp_config.json` (Windows) or `~/.config/Antigravity/mcp_config.json` (macOS/Linux) |
+
+### Setup Instructions
+
+1. **Open or create** the appropriate configuration file for your platform (see table above)
+
+2. **Add the following JSON configuration** within the `mcpServers` section:
+
+```json
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:\\path\\to\\mcp_sqlite",
+        "run",
+        "server.py"
+      ],
+      "env": {
+        "SQLITE_DB_PATH": "C:\\path\\to\\your\\database.db"
+      }
+    }
+  }
+}
+```
+
+**Configuration Parameters:**
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `command` | The command to run (uv package manager) | `uv` |
+| `--directory` | Path to the mcp_sqlite project directory | `C:\\Users\\user\\mcp_sqlite` or `/home/user/mcp_sqlite` |
+| `SQLITE_DB_PATH` | Full absolute path to the SQLite database file | `C:\\Users\\user\\databases\\app.db` |
+
+**Platform-Specific Path Examples:**
+
+- **Windows**: `C:\\Users\\YourName\\path\\to\\database.db`
+- **macOS/Linux**: `/home/username/path/to/database.db`
+
+3. **Restart the application** (Claude Desktop or Antigravity) for changes to take effect
+4. The SQLite tools will be available in the tool menu immediately
+
+## Local Testing & Development
+
+### Test with FastMCP Dev Mode
+
+For interactive testing during development:
 
 ```bash
-uv run mcp_sqlite_server.py
+fastmcp dev server.py
 ```
 
-## 🤝 Contributions
+This opens an interactive client where you can:
+- Test async tools in real-time
+- See detailed execution logs
+- Debug parameters and responses
+
+### Example Test Session
+
+```bash
+$ fastmcp dev server.py
+
+# In the interactive shell:
+>>> await list_tables()
+['users', 'posts', 'comments']
+
+>>> await get_table_schema('users')
+['id', 'name', 'email', 'created_at']
+
+>>> await execute_read_query('SELECT * FROM users LIMIT 5')
+[...]
+```
+
+## 🔧 Advanced: Extending the Server
+
+To add new async tools:
+
+1. Open `src/sqlite_mcp/server.py`
+2. Add a new `@mcp.tool()` decorated async function:
+
+```python
+@mcp.tool()
+async def my_new_tool(param: str) -> str:
+    """Description of what this tool does."""
+    query = "SELECT ..."
+    result = await sqlite_connection(query, is_select=True)
+    return result
+```
+
+3. Restart Claude Desktop
+4. The new tool will be available automatically
+
+### Logging in Custom Tools
+
+Use the logger to track tool execution:
+
+```python
+log.info(f"Processing query: {query}")
+try:
+    result = await sqlite_connection(query)
+except Exception as e:
+    log.error(f"Tool error: {str(e)}")
+    raise
+```
+
+## Contributions
 
 Contributions are welcome. Please:
 
@@ -323,14 +429,32 @@ Contributions are welcome. Please:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📞 Support
+## Support & Troubleshooting
 
-If you encounter issues:
+### Check Logs
 
-1. Check the logs in `logs/app.log`
-2. Verify the configuration in `claude_desktop_config.json`
-3. Make sure the database exists and is accessible
+All activity is logged to `logs/server.log`:
+
+```bash
+# View recent logs
+tail -f logs/server.log
+
+# On Windows PowerShell
+Get-Content logs/server.log -Tail 20 -Wait
+```
+
+### Common Issues
+
+**Issue:** `SQLITE_DB_PATH not found`  
+**Solution:** Verify the path is correct and the database file exists
+
+**Issue:** Slow queries  
+**Solution:** Use `create_index()` on frequently searched columns
+
+**Issue:** "Connection refused"  
+**Solution:** Ensure Claude Desktop is restarted after config changes
 
 ---
- 
-**Last updated:** 2026-04-05
+
+**Version:** 0.2.0  
+**Last updated:** 2026-04-21
